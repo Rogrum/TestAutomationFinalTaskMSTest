@@ -3,6 +3,8 @@ using log4net.Config;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium;
 using SauceDemoAutomation.Pages;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.IO;
 
 namespace SauceDemoAutomation.Tests
 {
@@ -12,8 +14,10 @@ namespace SauceDemoAutomation.Tests
         private static readonly ILog Logger = LogManager.GetLogger(typeof(LoginTests));
 
         [ThreadStatic]
-        private static IWebDriver Driver;
-        private LoginPage LoginPage;
+        private static IWebDriver? Driver;
+        private LoginPage? LoginPage;
+
+        private const string PageUrl = "https://www.saucedemo.com/";
 
         [TestInitialize]
         public void Setup()
@@ -22,60 +26,59 @@ namespace SauceDemoAutomation.Tests
             Logger.Info("Starting test setup");
 
             Driver = new ChromeDriver();
-            Driver.Navigate().GoToUrl("https://www.saucedemo.com/");
+            Driver.Navigate().GoToUrl(PageUrl);
             LoginPage = new LoginPage(Driver);
 
             Logger.Info("Browser opened and navigated to the page.");
         }
 
-        [TestMethod]
-        public void UC1_EmptyCredentials_ShowsUsernameRequired()
+        [DataTestMethod]
+        [DataRow("", "", "Epic sadface: Username is required")]
+        public void UC1_EmptyCredentials_ShowsUsernameRequired(string username, string password, string expectedError)
         {
             Logger.Info("Test UC1_EmptyCredentials_ShowsUsernameRequired started");
 
-            LoginPage.EnterUsername("");
-            LoginPage.EnterPassword("");
+            LoginPage!.EnterUsername(username);
+            LoginPage.EnterPassword(password);
             LoginPage.ClickLogin();
 
             string errorMessage = LoginPage.GetErrorMessage();
-            string usernameErrorMessage = "Epic sadface: Username is required";
+            Logger.Debug($"Expected error: {expectedError}, Actual error: {errorMessage}");
 
-            Logger.Debug($"Expected error: {usernameErrorMessage}, Actual error: {errorMessage}");
-
-            Assert.IsTrue(errorMessage.Contains(usernameErrorMessage), $"Expected '{usernameErrorMessage}' but found '{errorMessage}'.");
+            Assert.IsTrue(errorMessage.Contains(expectedError), $"Expected '{expectedError}' but found '{errorMessage}'.");
 
             Logger.Info("Test UC1_EmptyCredentials_ShowsUsernameRequired finished");
         }
 
-        [TestMethod]
-        public void UC2_MissingPassword_ShowsPasswordRequired()
+        [DataTestMethod]
+        [DataRow("standard_user", "", "Epic sadface: Password is required")]
+        public void UC2_MissingPassword_ShowsPasswordRequired(string username, string password, string expectedError)
         {
             Logger.Info("Test UC2_MissingPassword_ShowsPasswordRequired started");
 
-            LoginPage.EnterUsername("standard_user");
-            LoginPage.EnterPassword("");
+            LoginPage!.EnterUsername(username);
+            LoginPage.EnterPassword(password);
             LoginPage.ClickLogin();
 
             string errorMessage = LoginPage.GetErrorMessage();
-            string passwordErrorMessage = "Epic sadface: Password is required";
+            Logger.Debug($"Expected error: {expectedError}, Actual error: {errorMessage}");
 
-            Logger.Debug($"Expected error: {passwordErrorMessage}, Actual error: {errorMessage}");
-
-            Assert.IsTrue(errorMessage.Contains(passwordErrorMessage), $"Expected '{passwordErrorMessage}' but found '{errorMessage}'.");
+            Assert.IsTrue(errorMessage.Contains(expectedError), $"Expected '{expectedError}' but found '{errorMessage}'.");
 
             Logger.Info("Test UC2_MissingPassword_ShowsPasswordRequired finished");
         }
 
-        [TestMethod]
-        public void UC3_ValidCredentials_NavigatesToDashboard()
+        [DataTestMethod]
+        [DataRow("standard_user", "secret_sauce")]
+        public void UC3_ValidCredentials_NavigatesToDashboard(string username, string password)
         {
             Logger.Info("Test UC3_ValidCredentials_NavigatesToDashboard started");
 
-            LoginPage.EnterUsername("standard_user");
-            LoginPage.EnterPassword("secret_sauce");
+            LoginPage!.EnterUsername(username);
+            LoginPage.EnterPassword(password);
             LoginPage.ClickLogin();
 
-            Assert.IsTrue(Driver.Title.Contains("Swag Labs"));
+            Assert.IsTrue(Driver!.Title.Contains("Swag Labs"));
 
             Logger.Info("Test UC3_ValidCredentials_NavigatesToDashboard finished");
         }
@@ -93,3 +96,4 @@ namespace SauceDemoAutomation.Tests
         }
     }
 }
+
