@@ -46,13 +46,15 @@ namespace SauceDemoAutomation.Tests
         }
 
         [DataTestMethod]
-        [DataRow("", "", "Epic sadface: Username is required")]
+        [DataRow("Giga", "Chad", "Epic sadface: Username is required")]
         public void UC1_EmptyCredentials_ShowsUsernameRequired(string username, string password, string expectedError)
         {
             Logger.Information("Test UC1_EmptyCredentials_ShowsUsernameRequired started");
 
             LoginPage!.EnterUsername(username);
+            LoginPage.ClearUsername();
             LoginPage.EnterPassword(password);
+            LoginPage.ClearPassword();
             LoginPage.ClickLogin();
 
             string errorMessage = LoginPage.GetErrorMessage();
@@ -64,13 +66,14 @@ namespace SauceDemoAutomation.Tests
         }
 
         [DataTestMethod]
-        [DataRow("standard_user", "", "Epic sadface: Password is required")]
+        [DataRow("standard_user", "Nat1", "Epic sadface: Password is required")]
         public void UC2_MissingPassword_ShowsPasswordRequired(string username, string password, string expectedError)
         {
             Logger.Information("Test UC2_MissingPassword_ShowsPasswordRequired started");
 
             LoginPage!.EnterUsername(username);
             LoginPage.EnterPassword(password);
+            LoginPage.ClearPassword();
             LoginPage.ClickLogin();
 
             string errorMessage = LoginPage.GetErrorMessage();
